@@ -65,77 +65,44 @@ void createEllipse(sf::ConvexShape& shape, float radiusX, float radiusY, int poi
 
 // Функция обновления позиции зрачка глаза
 // Обновляет позицию зрачка в зависимости от позиции курсора мыши
-// Зрачок двигается по эллипсу белка и не выходит за его границы
 // void - функция не возвращает значение
 // updateEye() - имя функции
 // Eye& eye - ссылка на структуру Eye
 // sf::Vector2f mousePos - позиция курсора мыши в окне
 void updateEye(Eye& eye, sf::Vector2f mousePos)
 {
-    // Радиусы белка глаза (эллипса)
-    // Эти значения должны совпадать с параметрами при создании белка
-    const float whiteRadiusX = 80.0f;  // Радиус белка по оси X
-    const float whiteRadiusY = 60.0f;  // Радиус белка по оси Y
-    const float pupilRadius = 20.0f;   // Радиус зрачка (круглый)
-    
     // Вычисляем вектор от центра глаза к позиции мыши
     // Это вектор направления, в котором должен смотреть зрачок
     float dx = mousePos.x - eye.center.x;  // Разница по X
     float dy = mousePos.y - eye.center.y;  // Разница по Y
     
-    // Если мышь находится точно в центре глаза, зрачок остается в центре
-    if (dx == 0.0f && dy == 0.0f)
-    {
-        eye.pupil.setPosition(eye.center);
-        return;
-    }
+    // Вычисляем расстояние от центра глаза до мыши
+    // std::sqrt() - функция квадратного корня
+    // dx*dx + dy*dy - квадрат расстояния (теорема Пифагора)
+    float distance = std::sqrt(dx * dx + dy * dy);
     
-    // Вычисляем максимальное смещение зрачка с учетом эллиптической формы белка
-    // Зрачок должен оставаться внутри белка, поэтому учитываем его радиус
-    // Максимальное смещение по оси X: whiteRadiusX - pupilRadius
-    // Максимальное смещение по оси Y: whiteRadiusY - pupilRadius
-    const float maxOffsetX = whiteRadiusX - pupilRadius;
-    const float maxOffsetY = whiteRadiusY - pupilRadius;
+    // Ограничиваем расстояние максимальным радиусом движения зрачка
+    // Зрачок не должен выходить за пределы белка
+    // std::min() - возвращает минимальное из двух значений
+    // Если расстояние больше maxRadius, используем maxRadius
+    distance = std::min(distance, eye.maxRadius);
     
-    // Нормализуем вектор направления (приводим к единичному вектору)
-    // Это нужно для правильного вычисления точки на эллипсе
-    float length = std::sqrt(dx * dx + dy * dy);
-    float dirX = dx / length;  // Единичный вектор по X
-    float dirY = dy / length;  // Единичный вектор по Y
+    // Вычисляем угол направления к мыши
+    // std::atan2(y, x) - арктангенс, возвращает угол в радианах
+    // atan2 корректно обрабатывает все квадранты (углы от -π до π)
+    float angle = std::atan2(dy, dx);
     
-    // Находим точку пересечения направления с границей эллипса
-    // Формула эллипса: (x/a)² + (y/b)² = 1
-    // Луч: x = t * dirX, y = t * dirY (от центра)
-    // Подставляем в формулу: (t * dirX / a)² + (t * dirY / b)² = 1
-    // t² * (dirX²/a² + dirY²/b²) = 1
-    // t = 1 / sqrt(dirX²/a² + dirY²/b²)
-    float t = 1.0f / std::sqrt((dirX * dirX) / (maxOffsetX * maxOffsetX) + 
-                               (dirY * dirY) / (maxOffsetY * maxOffsetY));
+    // Вычисляем новую позицию зрачка
+    // Используем полярные координаты для позиционирования зрачка
+    // distance - радиус (расстояние от центра)
+    // angle - угол направления
+    // std::cos() и std::sin() - тригонометрические функции
+    float pupilX = eye.center.x + distance * std::cos(angle);
+    float pupilY = eye.center.y + distance * std::sin(angle);
     
-    // Вычисляем координаты точки на границе эллипса
-    float ellipseX = t * dirX;
-    float ellipseY = t * dirY;
-    
-    // Вычисляем расстояние от центра до мыши в нормализованных координатах эллипса
-    // Нормализуем координаты мыши относительно размеров эллипса
-    float normalizedDx = dx / maxOffsetX;
-    float normalizedDy = dy / maxOffsetY;
-    float normalizedDistance = std::sqrt(normalizedDx * normalizedDx + normalizedDy * normalizedDy);
-    
-    // Если мышь находится внутри эллипса (нормализованное расстояние < 1)
-    if (normalizedDistance < 1.0f)
-    {
-        // Зрачок следует за мышью (находится под курсором)
-        eye.pupil.setPosition(mousePos);
-    }
-    else
-    {
-        // Если мышь вне эллипса, зрачок остается на границе эллипса
-        // Устанавливаем позицию зрачка на границе эллипса в направлении мыши
-        float pupilX = eye.center.x + ellipseX;
-        float pupilY = eye.center.y + ellipseY;
-        eye.pupil.setPosition({pupilX, pupilY});
-    }
+    // Устанавливаем новую позицию зрачка
+    // setPosition() - устанавливает позицию фигуры
+    eye.pupil.setPosition({pupilX, pupilY});
 }
 
 // Главная функция программы

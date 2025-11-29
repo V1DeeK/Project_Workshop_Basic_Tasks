@@ -1,7 +1,4 @@
-# Добавляем исполняемый файл 02
 add_executable(02 main.cpp)
-
-# Пытаемся найти SFML 3, если не найдено - ищем SFML 2
 find_package(SFML 3 COMPONENTS Graphics Window System QUIET)
 if(NOT SFML_FOUND)
     find_package(SFML 2 COMPONENTS window graphics system)

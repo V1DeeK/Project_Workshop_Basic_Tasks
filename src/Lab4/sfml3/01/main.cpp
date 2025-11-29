@@ -38,16 +38,14 @@ void initArrow(Arrow& arrow)
 void updateArrowElements(Arrow& arrow)
 {
     arrow.stem.setPosition(arrow.position);
-    // В SFML 3 setRotation принимает sf::Angle, используем sf::degrees() для конвертации из градусов
-    arrow.stem.setRotation(sf::degrees(arrow.rotation * 180.0f / static_cast<float>(M_PI)));
+    arrow.stem.setRotation(arrow.rotation * 180.0f / static_cast<float>(M_PI));
     const float stemLength = 50.0f;  // Половина длины стержня
     sf::Vector2f headPosition = {
         arrow.position.x + stemLength * std::cos(arrow.rotation),  // X координата
         arrow.position.y + stemLength * std::sin(arrow.rotation)   // Y координата
     };
     arrow.head.setPosition(headPosition);
-    // В SFML 3 setRotation принимает sf::Angle, используем sf::degrees() для конвертации из градусов
-    arrow.head.setRotation(sf::degrees(arrow.rotation * 180.0f / static_cast<float>(M_PI)));
+    arrow.head.setRotation(arrow.rotation * 180.0f / static_cast<float>(M_PI));
 }
 int main()
 {
